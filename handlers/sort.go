@@ -14,7 +14,7 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	category := r.URL.Query().Get("category")
-	query := `SELECT
+	query := `SELECT 
 		p.*
 		FROM
 		posts AS p
