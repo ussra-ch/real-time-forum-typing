@@ -12,6 +12,8 @@ export function categories() {
     const button = document.createElement('button');
     button.className = 'categories';
     button.innerText = element;
+    button.type = "submit"
+    button.value = element
     button.addEventListener('click', (e) => {
       isAuthenticated().then(auth => {
         if (!auth) {
@@ -19,7 +21,12 @@ export function categories() {
           main()
         } else {
           e.preventDefault()
-          fetch(`/api/fetch_posts`)
+          fetch(`/api/sort_posts?category=${element}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+          })
             .then(res => res.json())
             .then(posts => {
               const postsContainer = document.getElementById('postsContainer');
@@ -30,9 +37,9 @@ export function categories() {
               postsContainer.innerHTML = '';
               posts.forEach(post => {
                 const topics = post.interest ? post.interest.split(',') : [];
-                console.log(topics);
-                
-                if (post.interest.split(',').includes(element) || element === 'All') {
+                // console.log(topics);
+
+                // if (post.interest.split(',').includes(element) || element === 'All') {
                   const postCard = document.createElement('div');
                   postCard.className = 'post-card1';
                   postCard.innerHTML = `
@@ -53,7 +60,7 @@ export function categories() {
                   menu.style.display = 'none'
                   menu.className = 'menu'
                   postCard.prepend(menu)
-                 
+
 
                   const div = document.createElement('div');
                   div.className = 'comments-container';
@@ -91,7 +98,7 @@ export function categories() {
                     }
                   });
                   comment(div)
-                }
+                // }
               });
 
             })

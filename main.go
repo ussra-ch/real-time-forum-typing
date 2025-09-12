@@ -24,6 +24,7 @@ func main() {
 	http.HandleFunc("/api/authenticated", handlers.IsAuthenticated)
 	http.HandleFunc("/api/post", handlers.RatelimitMiddleware(handlers.PostHandler, "posts", 10))
 	http.HandleFunc("/api/fetch_posts", handlers.FetchPostsHandler)
+	http.HandleFunc("/api/sort_posts", handlers.SortPostsHandler)
 	http.HandleFunc("/comment", handlers.RatelimitMiddleware(handlers.CommentHandler, "comments", 50))
 	http.HandleFunc("/api/fetch_comments", handlers.FetchCommentsHandler)
 	http.HandleFunc("/user", handlers.FetchUsers)

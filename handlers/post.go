@@ -122,10 +122,24 @@ func FetchPostsHandler(w http.ResponseWriter, r *http.Request) {
 	_, UserID := IsLoggedIn(r)
 	mu.Unlock()
 
-	query := `SELECT id, user_id, content, title, created_at FROM posts`
+	query := `SELECT
+    p.id,
+    p.user_id,
+    p.title,
+    p.content,
+    p.created_at,
+    GROUP_CONCAT(c.name) AS categories
+	FROM
+		posts AS p
+	LEFT JOIN
+		categories_post AS cp ON p.id = cp.postID
+	LEFT JOIN
+		categories AS c ON cp.categoryID = c.id
+	GROUP BY
+    p.id, p.user_id, p.title, p.content, p.created_at;
+`
 	rows, err := databases.DB.Query(query)
 	if err != nil {
-		
 		errorHandler(http.StatusInternalServerError, w)
 		return
 	}
@@ -137,7 +151,7 @@ func FetchPostsHandler(w http.ResponseWriter, r *http.Request) {
 		var content, title, interest string
 		var createdAt string
 
-		if err := rows.Scan(&id, &userID, &content, &title, &createdAt); err != nil {
+		if err := rows.Scan(&id, &userID, &content, &title, &createdAt, &interest); err != nil {
 			log.Println("Error scanning row:", err)
 			continue
 		}
