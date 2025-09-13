@@ -22,10 +22,6 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 		categories_post AS cp ON p.id = cp.postID
 		INNER JOIN
 		categories AS c ON cp.categoryID = c.id
-		LEFT JOIN
-		categories_post AS cp ON p.id = cp.postID
-		LEFT JOIN
-		categories AS c ON cp.categoryID = c.id
 		WHERE
 		c.name = ?;`
 	if category == "All"{
