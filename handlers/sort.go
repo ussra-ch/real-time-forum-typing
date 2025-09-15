@@ -20,8 +20,7 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
     p.content,
     p.title,
     p.created_at,
-    c.id AS categoryID,
-    c.name AS categoryName
+    GROUP_CONCAT(c.name, ', ') AS categories
 	FROM 
 		posts AS p
 	INNER JOIN 
@@ -41,20 +40,30 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 			WHERE 
 				c2.name = ?
 		)
+	GROUP BY 
+		p.id, p.user_id, p.content, p.title, p.created_at
 	ORDER BY 
-		p.id, c.name;
-
-
+    p.id;
 `
 	if category == "All" {
-		query = `SELECT
-		p.*
-		FROM
+		query = `SELECT 
+    p.id,
+    p.user_id,
+    p.content,
+    p.title,
+    p.created_at,
+    GROUP_CONCAT(c.name, ', ') AS categories
+	FROM 
 		posts AS p
-		INNER JOIN
+	LEFT JOIN 
 		categories_post AS cp ON p.id = cp.postID
-		INNER JOIN
-		categories AS c ON cp.categoryID = c.id`
+	LEFT JOIN 
+		categories AS c ON cp.categoryID = c.id
+	GROUP BY 
+		p.id, p.user_id, p.content, p.title, p.created_at
+	ORDER BY 
+		p.created_at DESC;
+`
 	}
 
 	rows, err := databases.DB.Query(query, category)
@@ -68,10 +77,7 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 		var id, userID int
 		var content, title, interest string
 		var createdAt string
-		var categoryID int
-		// var categoryName string
-
-		if err := rows.Scan(&id, &userID, &content, &title, &createdAt, &categoryID, &interest); err != nil {
+		if err := rows.Scan(&id, &userID, &content, &title, &createdAt, &interest); err != nil {
 			log.Println("Error scanning row:", err)
 			continue
 		}
@@ -91,7 +97,6 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 			"interest":   interest,
 			"created_at": createdAt,
 			"nickname":   nickname,
-			// "myId":       UserID,
 		}
 		posts = append(posts, post)
 	}
