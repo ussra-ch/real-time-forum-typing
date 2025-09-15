@@ -15,16 +15,38 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	category := r.URL.Query().Get("category")
 	query := `SELECT 
-		p.*
-		FROM
+    p.id,
+    p.user_id,
+    p.content,
+    p.title,
+    p.created_at,
+    c.id AS categoryID,
+    c.name AS categoryName
+	FROM 
 		posts AS p
-		INNER JOIN
+	INNER JOIN 
 		categories_post AS cp ON p.id = cp.postID
-		INNER JOIN
+	INNER JOIN 
 		categories AS c ON cp.categoryID = c.id
-		WHERE
-		c.name = ?;`
-	if category == "All"{
+	WHERE 
+		p.id IN (
+			SELECT 
+				p2.id
+			FROM 
+				posts AS p2
+			INNER JOIN 
+				categories_post AS cp2 ON p2.id = cp2.postID
+			INNER JOIN 
+				categories AS c2 ON cp2.categoryID = c2.id
+			WHERE 
+				c2.name = ?
+		)
+	ORDER BY 
+		p.id, c.name;
+
+
+`
+	if category == "All" {
 		query = `SELECT
 		p.*
 		FROM
@@ -46,8 +68,10 @@ func SortPostsHandler(w http.ResponseWriter, r *http.Request) {
 		var id, userID int
 		var content, title, interest string
 		var createdAt string
+		var categoryID int
+		// var categoryName string
 
-		if err := rows.Scan(&id, &userID, &content, &title, &createdAt); err != nil {
+		if err := rows.Scan(&id, &userID, &content, &title, &createdAt, &categoryID, &interest); err != nil {
 			log.Println("Error scanning row:", err)
 			continue
 		}
